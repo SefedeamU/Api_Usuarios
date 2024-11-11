@@ -1,0 +1,97 @@
+org: sefedeam
+service: api-comentario
+
+provider:
+  name: aws
+  runtime: python3.12	
+  memorySize: 1024
+  timeout: 30
+  iam:
+    role: arn:aws:iam::194347069948:role/LabRole	
+  environment:
+    TABLE_NAME: ${sls:stage}-t_comentarios
+
+functions:
+  createUser:
+    handler: handler_create_user.lambda_handler
+    events:
+      - http:
+          path: usuarios/create
+          method: post
+    environment:
+      TABLE_NAME: ${self:provider.environment.TABLE_NAME}
+
+  getUser:
+    handler: handler_get_user.lambda_handler
+    events:
+      - http:
+          path: usuarios/get
+          method: get
+          request:
+            parameters:
+              querystrings:
+                tenantID: true
+                email: true
+    environment:
+      TABLE_NAME: ${self:provider.environment.TABLE_NAME}
+
+  updateUser:
+    handler: handler_update_user.lambda_handler
+    events:
+      - http:
+          path: usuarios/update
+          method: put
+    environment:
+      TABLE_NAME: ${self:provider.environment.TABLE_NAME}
+
+  deleteUser:
+    handler: handler_delete_user.lambda_handler
+    events:
+      - http:
+          path: usuarios/delete
+          method: delete
+    environment:
+      TABLE_NAME: ${self:provider.environment.TABLE_NAME}
+
+  listUsers:
+    handler: handler_list_users.lambda_handler
+    events:
+      - http:
+          path: usuarios/list
+          method: get
+          request:
+            parameters:
+              querystrings:
+                limit: false
+                lastEvaluatedKey: false
+    environment:
+      TABLE_NAME: ${self:provider.environment.TABLE_NAME}
+
+  loginUser:
+    handler: handler_login_user.lambda_handler
+    events:
+      - http:
+          path: usuarios/login
+          method: post
+    environment:
+      TABLE_NAME: ${self:provider.environment.TABLE_NAME}
+
+resources:
+  Resources:
+    UsuariosDynamoDbTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.TABLE_NAME}
+        AttributeDefinitions:
+          - AttributeName: tenantID
+            AttributeType: S
+          - AttributeName: fechaCreacion
+            AttributeType: S
+        KeySchema:
+          - AttributeName: tenantID
+            KeyType: HASH
+          - AttributeName: fechaCreacion
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
