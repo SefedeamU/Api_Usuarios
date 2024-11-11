@@ -1,16 +1,18 @@
 # Api_Usuarios
 ##POST: Crear Usuario
+```
 {
   "email": "email@example.com",
   "nombre": "Juan Perez",
   "password": "password123"
 }
-
+```
 ##GET: Consultar usuario
+```
 Query Params (solo uno es necesario, tenantID o email):
 tenantID: "202411-123e4567-e89b-12d3-a456-426614174000"
 email: "email@example.com"
-
+```
 ##PUT: Actualizar Usuario
 ```
 {
