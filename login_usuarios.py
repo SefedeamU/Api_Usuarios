@@ -3,6 +3,7 @@ import hashlib
 import uuid
 from datetime import datetime, timedelta
 import json
+import os
 from boto3.dynamodb.conditions import Attr
 
 # Hashear contraseña
