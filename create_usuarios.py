@@ -9,40 +9,37 @@ table_name = os.environ['TABLE_NAME']
 table = dynamodb.Table(table_name)
 
 def lambda_handler(event, context):
-    # Extract information from event
+    tenant_id = event['body']['tenantID']
     email = event['body']['email']
     nombre = event['body']['nombre']
     password = event['body']['password']
-    
-    # Hash the password (consider using a stronger hashing library for production)
+
     password_hash = hashlib.sha256(password.encode()).hexdigest()
-    
-    # Generate tenantID with date and unique user ID
-    date_prefix = datetime.datetime.utcnow().strftime('%Y%m')
+
+    year_prefix = datetime.datetime.utcnow().strftime('%Y')
     user_id = str(uuid.uuid4())
-    tenant_id = f"{date_prefix}-{user_id}"
-    
-    # Get current timestamp for creation
-    fecha_creacion = datetime.datetime.utcnow().isoformat()
-    
-    # Create item
+    user_id = f"{year_prefix}-{user_id}"
+
+    fecha_creacion = datetime.datetime.utcnow().strftime('%m-%dT%H:%M:%S')
+
     usuario = {
         'tenantID': tenant_id,
+        'userID': user_id,
         'fechaCreacion': fecha_creacion,
         'nombre': nombre,
         'email': email,
         'passwordHash': password_hash,
         'ultimoAcceso': fecha_creacion
     }
-    
-    # Save item to DynamoDB
+
     response = table.put_item(Item=usuario)
-    
+
     return {
         'statusCode': 201,
         'body': {
             'message': 'Usuario creado',
             'tenantID': tenant_id,
+            'userID': user_id,
             'fechaCreacion': fecha_creacion
         }
     }

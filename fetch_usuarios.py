@@ -11,12 +11,12 @@ def lambda_handler(event, context):
     scan_params = {
         'Limit': limit,
     }
-    
+
     if last_evaluated_key:
         scan_params['ExclusiveStartKey'] = last_evaluated_key
-    
+
     response = table.scan(**scan_params)
-    
+
     items = response.get('Items', [])
     last_evaluated_key = response.get('LastEvaluatedKey', None)
 
