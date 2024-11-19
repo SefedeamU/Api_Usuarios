@@ -11,8 +11,8 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 dynamodb = boto3.resource('dynamodb')
-table_name = os.environ['TABLE_NAME']
-table = dynamodb.Table(table_name)
+USERS_TABLE = os.environ['USERS_TABLE']
+table = dynamodb.Table(USERS_TABLE)
 
 # Hash password function
 def hash_password(password):

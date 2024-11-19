@@ -9,7 +9,7 @@ provider:
   iam:
     role: arn:aws:iam::194347069948:role/LabRole
   environment:
-    TABLE_NAME: ${sls:stage}-usuarios
+    USERS_TABLE: ${sls:stage}-usuarios
 
 functions:
   createUsuario:
@@ -59,7 +59,7 @@ resources:
     UsuariosDynamoDbTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:provider.environment.TABLE_NAME}
+        TableName: ${self:provider.environment.USERS_TABLE}
         AttributeDefinitions:
           - AttributeName: tenantID
             AttributeType: S
