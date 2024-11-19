@@ -11,6 +11,7 @@ provider:
   environment:
     PRODUCTS_TABLE: ${sls:stage}-productos
     USERS_TABLE: ${sls:stage}-usuarios
+    TABLE_NAME: ${sls:stage}-usuarios
 
 functions:
   createUsuario:
