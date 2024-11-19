@@ -106,8 +106,6 @@ resources:
             Projection:
               ProjectionType: ALL
 
-    resources:
-      Resources:
         TokensAccesoDynamoDbTable:
           Type: AWS::DynamoDB::Table
           Properties:
