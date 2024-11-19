@@ -11,7 +11,7 @@ from boto3.dynamodb.conditions import Attr
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Hashear contraseña
+# Hash password function
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
@@ -22,12 +22,20 @@ def lambda_handler(event, context):
 
         # Parse the event body
         body = json.loads(event['body'])
-        tenant_id = body['tenantID']
-        email = body['email']
-        password = body['password']
+        tenant_id = body.get('tenantID')
+        email = body.get('email')
+        password = body.get('password')
+
+        # Validate required fields
+        if not tenant_id or not email or not password:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'error': 'Missing tenantID, email, or password'})
+            }
+
         hashed_password = hash_password(password)
 
-        # Proceso
+        # Process
         dynamodb = boto3.resource('dynamodb')
         users_table = dynamodb.Table(os.environ['USERS_TABLE'])
         tokens_table = dynamodb.Table('t_tokens_acceso')
@@ -45,13 +53,14 @@ def lambda_handler(event, context):
 
         item = items[0]
         if hashed_password == item['passwordHash']:
-            # Genera token
+            # Generate token
             token = str(uuid.uuid4())
-            fecha_hora_exp = datetime.now() + timedelta(minutes=60)
+            fecha_hora_exp = datetime.utcnow() + timedelta(minutes=60)
             registro = {
                 'token': token,
                 'expires': fecha_hora_exp.strftime('%Y-%m-%d %H:%M:%S'),
-                'user_id': item['userID']
+                'user_id': item['userID'],
+                'tenantID': tenant_id
             }
             tokens_table.put_item(Item=registro)
         else:
@@ -60,7 +69,7 @@ def lambda_handler(event, context):
                 'body': json.dumps({'error': 'Password incorrecto'})
             }
 
-        # Salida (json)
+        # Output (json)
         return {
             'statusCode': 200,
             'body': json.dumps({'token': token})
