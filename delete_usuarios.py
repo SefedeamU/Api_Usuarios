@@ -1,17 +1,25 @@
 import boto3
 import os
+import json
 
 dynamodb = boto3.resource('dynamodb')
 USERS_TABLE = os.environ['USERS_TABLE']
 table = dynamodb.Table(USERS_TABLE)
 
 def lambda_handler(event, context):
-    tenant_id = event['body']['tenantID']
-    user_id = event['body']['userID']
+    try:
+        body = json.loads(event['body'])
+        tenant_id = body['tenantID']
+        user_id = body['userID']
 
-    response = table.delete_item(Key={'tenantID': tenant_id, 'userID': user_id})
+        response = table.delete_item(Key={'tenantID': tenant_id, 'userID': user_id})
 
-    return {
-        'statusCode': 204,
-        'body': 'Usuario eliminado'
-    }
+        return {
+            'statusCode': 204,
+            'body': 'Usuario eliminado'
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }
