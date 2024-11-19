@@ -106,18 +106,18 @@ resources:
             Projection:
               ProjectionType: ALL
 
-        TokensAccesoDynamoDbTable:
-          Type: AWS::DynamoDB::Table
-          Properties:
-            TableName: t_tokens_acceso
-            AttributeDefinitions:
-              - AttributeName: token
-                AttributeType: S
-              - AttributeName: tenantID
-                AttributeType: S
-            KeySchema:
-              - AttributeName: token
-                KeyType: HASH
-            ProvisionedThroughput:
-              ReadCapacityUnits: 5
-              WriteCapacityUnits: 5
+    TokensAccesoDynamoDbTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: t_tokens_acceso
+        AttributeDefinitions:
+          - AttributeName: token
+            AttributeType: S
+          - AttributeName: tenantID
+            AttributeType: S
+        KeySchema:
+          - AttributeName: token
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
