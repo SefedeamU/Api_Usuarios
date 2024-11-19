@@ -5,6 +5,7 @@ import hashlib
 import os
 import json
 import logging
+from boto3.dynamodb.conditions import Attr
 
 # Configure logging
 logger = logging.getLogger()
@@ -35,6 +36,14 @@ def lambda_handler(event, context):
             return {
                 'statusCode': 400,
                 'body': json.dumps({'error': 'Missing tenantID, email, nombre, or password'})
+            }
+
+        # Check if the email already exists
+        response = table.scan(FilterExpression=Attr('email').eq(email))
+        if response['Items']:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'error': 'Email already exists'})
             }
 
         # Hash the password
