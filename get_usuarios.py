@@ -13,12 +13,14 @@ def lambda_handler(event, context):
 
     if tenant_id and user_id:
         response = table.get_item(Key={'tenantID': tenant_id, 'userID': user_id})
-    elif email:
-        response = table.scan(FilterExpression=Attr('email').eq(email))
+    elif tenant_id and email:
+        response = table.scan(
+            FilterExpression=Attr('tenantID').eq(tenant_id) & Attr('email').eq(email)
+        )
     else:
-        return {'statusCode': 400, 'body': 'Debe proporcionar tenantID y userID o email'}
+        return {'statusCode': 400, 'body': 'Debe proporcionar tenantID y userID o tenantID y email'}
 
-    item = response.get('Item')
+    item = response.get('Item') if 'Item' in response else response.get('Items', [None])[0]
 
     if not item:
         return {'statusCode': 404, 'body': 'Usuario no encontrado'}

@@ -22,6 +22,7 @@ def lambda_handler(event, context):
 
         # Parse the event body
         body = json.loads(event['body'])
+        tenant_id = body['tenantID']
         email = body['email']
         password = body['password']
         hashed_password = hash_password(password)
@@ -31,7 +32,9 @@ def lambda_handler(event, context):
         users_table = dynamodb.Table(os.environ['USERS_TABLE'])
         tokens_table = dynamodb.Table('t_tokens_acceso')
 
-        response = users_table.scan(FilterExpression=Attr('email').eq(email))
+        response = users_table.scan(
+            FilterExpression=Attr('tenantID').eq(tenant_id) & Attr('email').eq(email)
+        )
         items = response.get('Items', [])
 
         if not items:
