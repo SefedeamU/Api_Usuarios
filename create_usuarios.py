@@ -3,43 +3,75 @@ import uuid
 import datetime
 import hashlib
 import os
+import json
+import logging
+
+# Configure logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 dynamodb = boto3.resource('dynamodb')
 table_name = os.environ['TABLE_NAME']
 table = dynamodb.Table(table_name)
 
+# Hash password function
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
 def lambda_handler(event, context):
-    tenant_id = event['body']['tenantID']
-    email = event['body']['email']
-    nombre = event['body']['nombre']
-    password = event['body']['password']
+    try:
+        # Log the received event
+        logger.info("Received event: %s", json.dumps(event))
 
-    password_hash = hashlib.sha256(password.encode()).hexdigest()
+        # Parse the event body
+        body = json.loads(event['body'])
+        tenant_id = body.get('tenantID')
+        email = body.get('email')
+        nombre = body.get('nombre')
+        password = body.get('password')
 
-    year_prefix = datetime.datetime.utcnow().strftime('%Y')
-    user_id = str(uuid.uuid4())
-    user_id = f"{year_prefix}-{user_id}"
+        # Validate required fields
+        if not tenant_id or not email or not nombre or not password:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'error': 'Missing tenantID, email, nombre, or password'})
+            }
 
-    fecha_creacion = datetime.datetime.utcnow().strftime('%m-%dT%H:%M:%S')
+        # Hash the password
+        password_hash = hash_password(password)
 
-    usuario = {
-        'tenantID': tenant_id,
-        'userID': user_id,
-        'fechaCreacion': fecha_creacion,
-        'nombre': nombre,
-        'email': email,
-        'passwordHash': password_hash,
-        'ultimoAcceso': fecha_creacion
-    }
+        # Generate user ID and creation date
+        year_prefix = datetime.datetime.utcnow().strftime('%Y')
+        user_id = f"{year_prefix}-{str(uuid.uuid4())}"
+        fecha_creacion = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
 
-    response = table.put_item(Item=usuario)
-
-    return {
-        'statusCode': 201,
-        'body': {
-            'message': 'Usuario creado',
+        # Create user item
+        usuario = {
             'tenantID': tenant_id,
             'userID': user_id,
-            'fechaCreacion': fecha_creacion
+            'fechaCreacion': fecha_creacion,
+            'nombre': nombre,
+            'email': email,
+            'passwordHash': password_hash,
+            'ultimoAcceso': fecha_creacion
         }
-    }
+
+        # Store user in DynamoDB
+        table.put_item(Item=usuario)
+
+        # Return success response
+        return {
+            'statusCode': 201,
+            'body': json.dumps({
+                'message': 'Usuario creado',
+                'tenantID': tenant_id,
+                'userID': user_id,
+                'fechaCreacion': fecha_creacion
+            })
+        }
+    except Exception as e:
+        logger.error("Error creating user: %s", str(e))
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }
