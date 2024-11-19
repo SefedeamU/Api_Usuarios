@@ -14,6 +14,8 @@ logger.setLevel(logging.INFO)
 dynamodb = boto3.resource('dynamodb')
 USERS_TABLE = os.environ['USERS_TABLE']
 table = dynamodb.Table(USERS_TABLE)
+TOKENS_TABLE = 't_tokens_acceso'
+tokens_table = dynamodb.Table(TOKENS_TABLE)
 
 # Hash password function
 def hash_password(password):
@@ -68,14 +70,25 @@ def lambda_handler(event, context):
         # Store user in DynamoDB
         table.put_item(Item=usuario)
 
-        # Return success response
+        # Generate token
+        token = str(uuid.uuid4())
+        fecha_hora_exp = datetime.datetime.utcnow() + datetime.timedelta(minutes=60)
+        registro = {
+            'token': token,
+            'expires': fecha_hora_exp.strftime('%Y-%m-%d %H:%M:%S'),
+            'user_id': user_id
+        }
+        tokens_table.put_item(Item=registro)
+
+        # Return success response with token
         return {
             'statusCode': 201,
             'body': json.dumps({
                 'message': 'Usuario creado',
                 'tenantID': tenant_id,
                 'userID': user_id,
-                'fechaCreacion': fecha_creacion
+                'fechaCreacion': fecha_creacion,
+                'token': token
             })
         }
     except Exception as e:

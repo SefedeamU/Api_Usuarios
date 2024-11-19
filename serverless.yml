@@ -98,3 +98,17 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
+
+    TokensAccesoDynamoDbTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: t_tokens_acceso
+        AttributeDefinitions:
+          - AttributeName: token
+            AttributeType: S
+        KeySchema:
+          - AttributeName: token
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
