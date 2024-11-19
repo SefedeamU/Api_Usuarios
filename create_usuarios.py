@@ -40,12 +40,14 @@ def lambda_handler(event, context):
                 'body': json.dumps({'error': 'Missing tenantID, email, nombre, or password'})
             }
 
-        # Check if the email already exists
-        response = table.scan(FilterExpression=Attr('email').eq(email))
+        # Check if the email already exists for the given tenantID
+        response = table.scan(
+            FilterExpression=Attr('tenantID').eq(tenant_id) & Attr('email').eq(email)
+        )
         if response['Items']:
             return {
                 'statusCode': 400,
-                'body': json.dumps({'error': 'Email already exists'})
+                'body': json.dumps({'error': 'Email already exists for this tenant'})
             }
 
         # Hash the password
