@@ -1,3 +1,17 @@
+org: sefedeam
+service: api-tienda
+
+provider:
+  name: aws
+  runtime: python3.12
+  memorySize: 1024
+  timeout: 30
+  iam:
+    role: arn:aws:iam::194347069948:role/LabRole
+  environment:
+    PRODUCTS_TABLE: ${sls:stage}-productos
+    USERS_TABLE: ${sls:stage}-usuarios
+
 functions:
   createUsuario:
     handler: create_usuarios.lambda_handler
