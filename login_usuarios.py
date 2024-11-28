@@ -47,8 +47,8 @@ def lambda_handler(event, context):
 
         if not items:
             return {
-                'statusCode': 403,
-                'body': json.dumps({'error': 'Usuario no existe'})
+                'statusCode': 404,
+                'body': json.dumps({'error': 'User not found'})
             }
 
         item = items[0]
@@ -63,17 +63,21 @@ def lambda_handler(event, context):
                 'tenantID': tenant_id
             }
             tokens_table.put_item(Item=registro)
+
+            # Return success response with token
+            return {
+                'statusCode': 200,
+                'body': json.dumps({
+                    'message': 'Login successful',
+                    'token': token,
+                    'rol': item['rol']
+                })
+            }
         else:
             return {
-                'statusCode': 403,
-                'body': json.dumps({'error': 'Password incorrecto'})
+                'statusCode': 401,
+                'body': json.dumps({'error': 'Invalid password'})
             }
-
-        # Output (json)
-        return {
-            'statusCode': 200,
-            'body': json.dumps({'token': token})
-        }
     except Exception as e:
         logger.error("Error during login: %s", str(e))
         return {

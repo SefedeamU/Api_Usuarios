@@ -32,12 +32,20 @@ def lambda_handler(event, context):
         email = body.get('email')
         nombre = body.get('nombre')
         password = body.get('password')
+        rol = body.get('rol')
 
         # Validate required fields
-        if not tenant_id or not email or not nombre or not password:
+        if not tenant_id or not email or not nombre or not password or not rol:
             return {
                 'statusCode': 400,
-                'body': json.dumps({'error': 'Missing tenantID, email, nombre, or password'})
+                'body': json.dumps({'error': 'Missing tenantID, email, nombre, password, or rol'})
+            }
+
+        # Validate rol
+        if rol not in ['ADMIN', 'USER']:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'error': 'Invalid rol. Must be ADMIN or USER'})
             }
 
         # Check if the email already exists for the given tenantID
@@ -66,7 +74,8 @@ def lambda_handler(event, context):
             'nombre': nombre,
             'email': email,
             'passwordHash': password_hash,
-            'ultimoAcceso': fecha_creacion
+            'ultimoAcceso': fecha_creacion,
+            'rol': rol
         }
 
         # Store user in DynamoDB

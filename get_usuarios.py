@@ -1,5 +1,6 @@
 import boto3
 import os
+import json
 from boto3.dynamodb.conditions import Key, Attr
 
 dynamodb = boto3.resource('dynamodb')
@@ -18,15 +19,15 @@ def lambda_handler(event, context):
             FilterExpression=Attr('tenantID').eq(tenant_id) & Attr('email').eq(email)
         )
     else:
-        return {'statusCode': 400, 'body': 'Debe proporcionar tenantID y userID o tenantID y email'}
+        return {'statusCode': 400, 'body': json.dumps({'error': 'Debe proporcionar tenantID y userID o tenantID y email'})}
 
     item = response.get('Item') if 'Item' in response else response.get('Items', [None])[0]
 
     if not item:
-        return {'statusCode': 404, 'body': 'Usuario no encontrado'}
+        return {'statusCode': 404, 'body': json.dumps({'error': 'Usuario no encontrado'})}
 
     item.pop('passwordHash', None)
     return {
         'statusCode': 200,
-        'body': item
+        'body': json.dumps(item)
     }
